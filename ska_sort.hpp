@@ -1443,3 +1443,52 @@ bool ska_sort_copy(It begin, It end, OutIt buffer_begin)
 {
     return ska_sort_copy(begin, end, buffer_begin, detail::IdentityFunctor());
 }
+
+
+template<typename It, typename OutIt, typename ExtractKey>
+void counting_sort(It begin, It end, OutIt out_begin, ExtractKey && extract_key)
+{
+    detail::counting_sort_impl(begin, end, out_begin, extract_key);
+}
+template<typename It, typename OutIt>
+void counting_sort(It begin, It end, OutIt out_begin)
+{
+    using detail::to_unsigned_or_bool;
+    detail::counting_sort_impl(begin, end, out_begin, [](auto && a){ return to_unsigned_or_bool(a); });
+}
+
+template<typename It, typename OutIt, typename ExtractKey>
+bool radix_sort(It begin, It end, OutIt buffer_begin, ExtractKey && extract_key)
+{
+    return detail::RadixSorter<typename std::result_of<ExtractKey(decltype(*begin))>::type>::sort(begin, end, buffer_begin, extract_key);
+}
+template<typename It, typename OutIt>
+bool radix_sort(It begin, It end, OutIt buffer_begin)
+{
+    return detail::RadixSorter<decltype(*begin)>::sort(begin, end, buffer_begin, detail::IdentityFunctor());
+}
+
+template<typename It, typename ExtractKey>
+static void inplace_radix_sort(It begin, It end, ExtractKey && extract_key)
+{
+    detail::inplace_radix_sort<1, 1>(begin, end, extract_key);
+}
+
+template<typename It>
+static void inplace_radix_sort(It begin, It end)
+{
+    inplace_radix_sort(begin, end, detail::IdentityFunctor());
+}
+
+template<typename It, typename ExtractKey>
+static void american_flag_sort(It begin, It end, ExtractKey && extract_key)
+{
+    detail::inplace_radix_sort<1, std::numeric_limits<std::ptrdiff_t>::max()>(begin, end, extract_key);
+}
+
+template<typename It>
+static void american_flag_sort(It begin, It end)
+{
+    american_flag_sort(begin, end, detail::IdentityFunctor());
+}
+

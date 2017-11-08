@@ -818,5 +818,10 @@ TEST(inplace_radix_sort, no_copy)
     ASSERT_TRUE(std::is_sorted(to_sort.begin(), to_sort.end(), sort_by_last_name));
 }
 
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+
 
 
