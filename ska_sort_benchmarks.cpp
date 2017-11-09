@@ -350,101 +350,168 @@ auto create_radix_sort_data<DataTypes::vector_vector_int_random_size>(std::mt199
 
 
 template <enum DataTypes val>
-void benchmark_radix_sort(benchmark::State & state)
+void benchmark_radix_sort_copy(benchmark::State & state)
 {
     std::mt19937_64 randomness(77342348);
-    auto buffer = create_radix_sort_data<val>(randomness, state.range(0));
+    auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+    typedef decltype(to_sort) cont;
+    cont buffer(to_sort.size());
+    benchmark::DoNotOptimize(buffer.data());
+    buffer.clear();
     for (auto _ : state)
     {
-        auto to_sort = buffer;
-        benchmark::DoNotOptimize(to_sort.data());
         radix_sort(to_sort.begin(), to_sort.end(), buffer.begin());
         benchmark::ClobberMemory();
+        buffer.clear();
+
     }
+    state.SetItemsProcessed(state.iterations() * to_sort.size());
+    state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
 }
 
 
 template <enum DataTypes val>
 void benchmark_ska_sort_copy(benchmark::State & state)
 {
-    std::mt19937_64 randomness(77342348);
-    auto buffer = create_radix_sort_data<val>(randomness, state.range(0));
-    for (auto _ : state)
-    {
-        auto to_sort = buffer;
-        benchmark::DoNotOptimize(to_sort.data());
-        ska_sort_copy(to_sort.begin(), to_sort.end(), buffer.begin());
-    }
+  std::mt19937_64 randomness(77342348);
+  auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+  typedef decltype(to_sort) cont;
+  cont buffer(to_sort.size());
+  benchmark::DoNotOptimize(buffer.data());
+  buffer.clear();
+  for (auto _ : state)
+  {
+    ska_sort_copy(to_sort.begin(), to_sort.end(), buffer.begin());
+    benchmark::ClobberMemory();
+    buffer.clear();
+  }
+  state.SetItemsProcessed(state.iterations() * to_sort.size());
+  state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
+}
+
+template <enum DataTypes val>
+static void benchmark_std_sort_copy(benchmark::State & state)
+{
+  std::mt19937_64 randomness(77342348);
+  auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+  typedef decltype(to_sort) cont;
+  cont buffer(to_sort.size());
+  benchmark::DoNotOptimize(buffer.data());
+  for (auto _ : state)
+  {
+    std::partial_sort_copy(to_sort.begin(), to_sort.end(), buffer.begin(), buffer.end());
+    benchmark::ClobberMemory();
+  }
+  state.SetItemsProcessed(state.iterations() * to_sort.size());
+  state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
+}
+
+
+template <enum DataTypes val>
+static void benchmark_radix_sort(benchmark::State & state)
+{
+  std::mt19937_64 randomness(77342348);
+  auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+  typedef decltype(to_sort) cont;
+  cont buffer(to_sort.size());
+  benchmark::DoNotOptimize(buffer.data());
+  buffer.clear();
+  for (auto _ : state)
+  {
+      buffer = to_sort;
+      benchmark::DoNotOptimize(buffer.data());
+      inplace_radix_sort(buffer.begin(), buffer.end());
+      benchmark::ClobberMemory();
+      buffer.clear();
+  }
+  state.SetItemsProcessed(state.iterations() * to_sort.size());
+  state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
+}
+
+template <enum DataTypes val>
+static void benchmark_ska_sort(benchmark::State & state)
+{
+  std::mt19937_64 randomness(77342348);
+  auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+  typedef decltype(to_sort) cont;
+  cont buffer(to_sort.size());
+  benchmark::DoNotOptimize(buffer.data());
+  buffer.clear();
+  for (auto _ : state)
+  {
+      buffer = to_sort;
+      benchmark::DoNotOptimize(buffer.data());
+      ska_sort(buffer.begin(), buffer.end());
+      benchmark::ClobberMemory();
+      buffer.clear();
+  }
+  state.SetItemsProcessed(state.iterations() * to_sort.size());
+  state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
 }
 
 template <enum DataTypes val>
 static void benchmark_std_sort(benchmark::State & state)
 {
     std::mt19937_64 randomness(77342348);
-    auto buffer = create_radix_sort_data<val>(randomness, state.range(0));
+    auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+    typedef decltype(to_sort) cont;
+    cont buffer(to_sort.size());
+    benchmark::DoNotOptimize(buffer.data());
+    buffer.clear();
     for (auto _ : state)
     {
-        auto to_sort = buffer;
-        benchmark::DoNotOptimize(to_sort.data());
-        std::sort(to_sort.begin(), to_sort.end());
+        buffer = to_sort;
+        benchmark::DoNotOptimize(buffer.data());
+        std::sort(buffer.begin(), buffer.end());
         benchmark::ClobberMemory();
+        buffer.clear();
     }
+    state.SetItemsProcessed(state.iterations() * to_sort.size());
+    state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
 }
+
 
 template <enum DataTypes val>
 static void benchmark_american_flag_sort(benchmark::State & state)
 {
     std::mt19937_64 randomness(77342348);
-    auto buffer = create_radix_sort_data<val>(randomness, state.range(0));
+    auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+    typedef decltype(to_sort) cont;
+    cont buffer(to_sort.size());
+    benchmark::DoNotOptimize(buffer.data());
+    buffer.clear();
     for (auto _ : state)
     {
-        auto to_sort = buffer;
-        benchmark::DoNotOptimize(to_sort.data());
-        american_flag_sort(to_sort.begin(), to_sort.end());
+        buffer = to_sort;
+        benchmark::DoNotOptimize(buffer.data());
+        american_flag_sort(buffer.begin(), buffer.end());
         benchmark::ClobberMemory();
+        buffer.clear();
     }
+    state.SetItemsProcessed(state.iterations() * to_sort.size());
+    state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
 }
 
 
-template <enum DataTypes val>
-static void benchmark_ska_sort(benchmark::State & state)
-{
-    std::mt19937_64 randomness(77342348);
-    auto buffer = create_radix_sort_data<val>(randomness, state.range(0));
-    for (auto _ : state)
-    {
-        auto to_sort = buffer;
-        benchmark::DoNotOptimize(to_sort.data());
-        ska_sort(to_sort.begin(), to_sort.end());
-        benchmark::ClobberMemory();
-    }
-}
-
-template <enum DataTypes val>
-static void benchmark_inplace_radix_sort(benchmark::State & state)
-{
-    std::mt19937_64 randomness(77342348);
-    auto buffer = create_radix_sort_data<val>(randomness, state.range(0));
-    for (auto _ : state)
-    {
-        auto to_sort = buffer;
-        benchmark::DoNotOptimize(to_sort.data());
-        inplace_radix_sort(to_sort.begin(), to_sort.end());
-        benchmark::ClobberMemory();
-    }
-}
 
 template <enum DataTypes val>
 static void benchmark_generation(benchmark::State & state)
 {
-    std::mt19937_64 randomness(77342348);
-    auto buffer = create_radix_sort_data<val>(randomness, state.range(0));
-    for (auto _ : state)
-    {
-        auto to_sort = buffer;
-        benchmark::DoNotOptimize(to_sort.data());
-        benchmark::ClobberMemory();
-    }
+  std::mt19937_64 randomness(77342348);
+  auto to_sort = create_radix_sort_data<val>(randomness, state.range(0));
+  typedef decltype(to_sort) cont;
+  cont buffer(to_sort.size());
+  benchmark::DoNotOptimize(buffer.data());
+  buffer.clear();
+  for (auto _ : state)
+  {
+      buffer = to_sort;
+      benchmark::DoNotOptimize(buffer.data());
+      benchmark::ClobberMemory();
+      buffer.clear();
+  }
+  state.SetItemsProcessed(state.iterations() * to_sort.size());
+  state.SetBytesProcessed(state.iterations() * to_sort.size() * sizeof(typename cont::value_type));
 }
 
 static std::vector<std::int8_t> SKA_SORT_NOINLINE create_limited_radix_sort_data(std::mt19937_64 & randomness, int8_t range_end)
@@ -472,6 +539,8 @@ static void benchmark_limited_generation(benchmark::State & state)
         benchmark::DoNotOptimize(to_sort.data());
         benchmark::ClobberMemory();
     }
+    state.SetItemsProcessed(state.iterations() * buffer.size());
+    state.SetBytesProcessed(state.iterations() * buffer.size() * sizeof(typename decltype(buffer)::value_type));
 }
 
 
@@ -486,27 +555,35 @@ static void benchmark_limited_inplace_sort(benchmark::State & state)
         ska_sort(to_sort.begin(), to_sort.end());
         benchmark::ClobberMemory();
     }
+    state.SetItemsProcessed(state.iterations() * buffer.size());
+    state.SetBytesProcessed(state.iterations() * buffer.size() * sizeof(typename decltype(buffer)::value_type));
 }
 
+#define LIMITED_RANGE() Arg(-128)->Arg(-127)->Arg(-120)->Arg(-96)->Arg(-64)->Arg(-32)->Arg(0)->Arg(32)->Arg(64)->Arg(96)->Arg(127)
+//BENCHMARK(benchmark_limited_generation)->LIMITED_RANGE();
+//BENCHMARK(benchmark_limited_inplace_sort)->LIMITED_RANGE();
+
 static constexpr int profile_multiplier = 2;
-//static constexpr int max_profile_range = 1 << 24;
+static constexpr int min_profile_range = 1 << 5;
 static constexpr int max_profile_range = 1 << 20;
 
-#define RANGE_ARGS() RangeMultiplier(profile_multiplier)->Range(profile_multiplier, max_profile_range)
+#define RANGE_ARGS() RangeMultiplier(profile_multiplier)->Range(min_profile_range, max_profile_range)
 
 #define BENCHMARK_SUITE(DATA_TYPE) \
+BENCHMARK_TEMPLATE(benchmark_radix_sort_copy, DATA_TYPE)->RANGE_ARGS(); \
+BENCHMARK_TEMPLATE(benchmark_ska_sort_copy  , DATA_TYPE)->RANGE_ARGS(); \
+BENCHMARK_TEMPLATE(benchmark_std_sort_copy  , DATA_TYPE)->RANGE_ARGS(); \
 BENCHMARK_TEMPLATE(benchmark_radix_sort, DATA_TYPE)->RANGE_ARGS(); \
+BENCHMARK_TEMPLATE(benchmark_ska_sort  , DATA_TYPE)->RANGE_ARGS(); \
 BENCHMARK_TEMPLATE(benchmark_std_sort  , DATA_TYPE)->RANGE_ARGS(); \
 BENCHMARK_TEMPLATE(benchmark_american_flag_sort, DATA_TYPE)->RANGE_ARGS(); \
-BENCHMARK_TEMPLATE(benchmark_ska_sort  , DATA_TYPE)->RANGE_ARGS(); \
-BENCHMARK_TEMPLATE(benchmark_inplace_radix_sort , DATA_TYPE)->RANGE_ARGS(); \
 BENCHMARK_TEMPLATE(benchmark_generation, DATA_TYPE)->RANGE_ARGS();
 
 #define REDUCED_BENCHMARK_SUITE(DATA_TYPE) \
+BENCHMARK_TEMPLATE(benchmark_radix_sort, DATA_TYPE)->RANGE_ARGS(); \
+BENCHMARK_TEMPLATE(benchmark_ska_sort  , DATA_TYPE)->RANGE_ARGS(); \
 BENCHMARK_TEMPLATE(benchmark_std_sort  , DATA_TYPE)->RANGE_ARGS(); \
 BENCHMARK_TEMPLATE(benchmark_american_flag_sort, DATA_TYPE)->RANGE_ARGS(); \
-BENCHMARK_TEMPLATE(benchmark_ska_sort  , DATA_TYPE)->RANGE_ARGS(); \
-BENCHMARK_TEMPLATE(benchmark_inplace_radix_sort , DATA_TYPE)->RANGE_ARGS(); \
 BENCHMARK_TEMPLATE(benchmark_generation, DATA_TYPE)->RANGE_ARGS();
 
 BENCHMARK_SUITE(DataTypes::vector_int32_t)
@@ -525,11 +602,6 @@ REDUCED_BENCHMARK_SUITE(DataTypes::vector_vector_int)
 REDUCED_BENCHMARK_SUITE(DataTypes::vector_vector_string)
 REDUCED_BENCHMARK_SUITE(DataTypes::vector_string)
 REDUCED_BENCHMARK_SUITE(DataTypes::vector_vector_int_random_size)
-
-
-#define LIMITED_RANGE() Arg(-128)->Arg(-127)->Arg(-120)->Arg(-96)->Arg(-64)->Arg(-32)->Arg(0)->Arg(32)->Arg(64)->Arg(96)->Arg(127)
-BENCHMARK(benchmark_limited_generation)->LIMITED_RANGE();
-BENCHMARK(benchmark_limited_inplace_sort)->LIMITED_RANGE();
 
 
 BENCHMARK_MAIN();
